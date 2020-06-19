@@ -1,0 +1,17 @@
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /{allPaths=**} {
+      allow read, write: if request.auth!=null;
+    }
+
+    function isLoggedIn() {
+  		return request.auth.uid != null;
+  	}
+
+  	match /{uid}/{image} {
+      allow read: if isLoggedIn() && uid == request.auth.uid;
+      allow write: if isLoggedIn() && uid == request.auth.uid && request.resource.size < 5 * 1024 * 1024
+                   && request.resource.contentType.matches('image/.*') && image.size() < 64;
+    }
+  }
+}
